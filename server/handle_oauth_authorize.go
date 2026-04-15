@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/oauth"
 	"github.com/haileyok/cocoon/oauth/constants"
@@ -34,14 +33,14 @@ func (s *Server) handleOauthAuthorizeGet(e echo.Context) error {
 		id, err := oauth.DecodeRequestUri(input.RequestUri)
 		if err != nil {
 			logger.Error("no request uri found in input", "url", e.Request().URL.String())
-			return helpers.InputError(e, to.StringPtr("no request uri"))
+			return helpers.InputError(e, new("no request uri"))
 		}
 		reqId = id
 	} else {
 		var parRequest provider.ParRequest
 		if err := e.Bind(&parRequest); err != nil {
 			s.logger.Error("error binding for standard auth request", "error", err)
-			return helpers.InputError(e, to.StringPtr("InvalidRequest"))
+			return helpers.InputError(e, new("InvalidRequest"))
 		}
 
 		if err := e.Validate(parRequest); err != nil {
@@ -54,7 +53,7 @@ func (s *Server) handleOauthAuthorizeGet(e echo.Context) error {
 					"RequestUri": "",
 				})
 			}
-			return helpers.InputError(e, to.StringPtr("no request uri and invalid parameters"))
+			return helpers.InputError(e, new("no request uri and invalid parameters"))
 		}
 
 		client, clientAuth, err := s.oauthProvider.AuthenticateClient(ctx, parRequest.AuthenticateClientRequestBase, nil, &provider.AuthenticateClientOptions{
@@ -62,7 +61,7 @@ func (s *Server) handleOauthAuthorizeGet(e echo.Context) error {
 		})
 		if err != nil {
 			s.logger.Error("error authenticating client in standard request", "client_id", parRequest.ClientID, "error", err)
-			return helpers.ServerError(e, to.StringPtr(err.Error()))
+			return helpers.ServerError(e, new(err.Error()))
 		}
 
 		if parRequest.DpopJkt == nil {
@@ -103,17 +102,17 @@ func (s *Server) handleOauthAuthorizeGet(e echo.Context) error {
 
 	var req provider.OauthAuthorizationRequest
 	if err := s.db.Raw(ctx, "SELECT * FROM oauth_authorization_requests WHERE request_id = ?", nil, reqId).Scan(&req).Error; err != nil {
-		return helpers.ServerError(e, to.StringPtr(err.Error()))
+		return helpers.ServerError(e, new(err.Error()))
 	}
 
 	clientId := e.QueryParam("client_id")
 	if clientId != req.ClientId {
-		return helpers.InputError(e, to.StringPtr("client id does not match the client id for the supplied request"))
+		return helpers.InputError(e, new("client id does not match the client id for the supplied request"))
 	}
 
 	client, err := s.oauthProvider.ClientManager.GetClient(e.Request().Context(), req.ClientId)
 	if err != nil {
-		return helpers.ServerError(e, to.StringPtr(err.Error()))
+		return helpers.ServerError(e, new(err.Error()))
 	}
 
 	scopes := strings.Split(req.Parameters.Scope, " ")
@@ -152,17 +151,17 @@ func (s *Server) handleOauthAuthorizePost(e echo.Context) error {
 
 	reqId, err := oauth.DecodeRequestUri(req.RequestUri)
 	if err != nil {
-		return helpers.InputError(e, to.StringPtr(err.Error()))
+		return helpers.InputError(e, new(err.Error()))
 	}
 
 	var authReq provider.OauthAuthorizationRequest
 	if err := s.db.Raw(ctx, "SELECT * FROM oauth_authorization_requests WHERE request_id = ?", nil, reqId).Scan(&authReq).Error; err != nil {
-		return helpers.ServerError(e, to.StringPtr(err.Error()))
+		return helpers.ServerError(e, new(err.Error()))
 	}
 
 	client, err := s.oauthProvider.ClientManager.GetClient(e.Request().Context(), authReq.ClientId)
 	if err != nil {
-		return helpers.ServerError(e, to.StringPtr(err.Error()))
+		return helpers.ServerError(e, new(err.Error()))
 	}
 
 	// TODO: figure out how im supposed to actually redirect
@@ -171,11 +170,11 @@ func (s *Server) handleOauthAuthorizePost(e echo.Context) error {
 	}
 
 	if time.Now().After(authReq.ExpiresAt) {
-		return helpers.InputError(e, to.StringPtr("the request has expired"))
+		return helpers.InputError(e, new("the request has expired"))
 	}
 
 	if authReq.Sub != nil || authReq.Code != nil {
-		return helpers.InputError(e, to.StringPtr("this request was already authorized"))
+		return helpers.InputError(e, new("this request was already authorized"))
 	}
 
 	code := oauth.GenerateCode()

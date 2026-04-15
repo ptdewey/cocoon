@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/atproto/atcrypto"
 	atp "github.com/bluesky-social/indigo/atproto/repo"
@@ -57,19 +56,19 @@ func (s *Server) handleCreateAccount(e echo.Context) error {
 		if errors.As(err, &verr) {
 			if verr.Field == "Email" {
 				// TODO: what is this supposed to be? `InvalidEmail` isn't listed in doc
-				return helpers.InputError(e, to.StringPtr("InvalidEmail"))
+				return helpers.InputError(e, new("InvalidEmail"))
 			}
 
 			if verr.Field == "Handle" {
-				return helpers.InputError(e, to.StringPtr("InvalidHandle"))
+				return helpers.InputError(e, new("InvalidHandle"))
 			}
 
 			if verr.Field == "Password" {
-				return helpers.InputError(e, to.StringPtr("InvalidPassword"))
+				return helpers.InputError(e, new("InvalidPassword"))
 			}
 
 			if verr.Field == "InviteCode" {
-				return helpers.InputError(e, to.StringPtr("InvalidInviteCode"))
+				return helpers.InputError(e, new("InvalidInviteCode"))
 			}
 		}
 	}
@@ -80,17 +79,17 @@ func (s *Server) handleCreateAccount(e echo.Context) error {
 
 		token := strings.TrimSpace(strings.Replace(e.Request().Header.Get("authorization"), "Bearer ", "", 1))
 		if token == "" {
-			return helpers.UnauthorizedError(e, to.StringPtr("must authenticate to use an existing did"))
+			return helpers.UnauthorizedError(e, new("must authenticate to use an existing did"))
 		}
 		authDid, err := s.validateServiceAuth(e.Request().Context(), token, "com.atproto.server.createAccount")
 
 		if err != nil {
 			logger.Warn("error validating authorization token", "endpoint", "com.atproto.server.createAccount", "error", err)
-			return helpers.UnauthorizedError(e, to.StringPtr("invalid authorization token"))
+			return helpers.UnauthorizedError(e, new("invalid authorization token"))
 		}
 
 		if authDid != signupDid {
-			return helpers.ForbiddenError(e, to.StringPtr("auth did did not match signup did"))
+			return helpers.ForbiddenError(e, new("auth did did not match signup did"))
 		}
 	}
 
@@ -101,29 +100,29 @@ func (s *Server) handleCreateAccount(e echo.Context) error {
 		return helpers.ServerError(e, nil)
 	}
 	if err == nil && actor.Did != signupDid {
-		return helpers.InputError(e, to.StringPtr("HandleNotAvailable"))
+		return helpers.InputError(e, new("HandleNotAvailable"))
 	}
 
 	if did, err := s.passport.ResolveHandle(e.Request().Context(), request.Handle); err == nil && did != signupDid {
-		return helpers.InputError(e, to.StringPtr("HandleNotAvailable"))
+		return helpers.InputError(e, new("HandleNotAvailable"))
 	}
 
 	var ic models.InviteCode
 	if s.config.RequireInvite {
 		if strings.TrimSpace(request.InviteCode) == "" {
-			return helpers.InputError(e, to.StringPtr("InvalidInviteCode"))
+			return helpers.InputError(e, new("InvalidInviteCode"))
 		}
 
 		if err := s.db.Raw(ctx, "SELECT * FROM invite_codes WHERE code = ?", nil, request.InviteCode).Scan(&ic).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
-				return helpers.InputError(e, to.StringPtr("InvalidInviteCode"))
+				return helpers.InputError(e, new("InvalidInviteCode"))
 			}
 			logger.Error("error getting invite code from db", "error", err)
 			return helpers.ServerError(e, nil)
 		}
 
 		if ic.RemainingUseCount < 1 {
-			return helpers.InputError(e, to.StringPtr("InvalidInviteCode"))
+			return helpers.InputError(e, new("InvalidInviteCode"))
 		}
 	}
 
@@ -134,7 +133,7 @@ func (s *Server) handleCreateAccount(e echo.Context) error {
 		return helpers.ServerError(e, nil)
 	}
 	if err == nil && existingRepo.Did != signupDid {
-		return helpers.InputError(e, to.StringPtr("EmailNotAvailable"))
+		return helpers.InputError(e, new("EmailNotAvailable"))
 	}
 
 	// TODO: unsupported domains
@@ -193,7 +192,7 @@ func (s *Server) handleCreateAccount(e echo.Context) error {
 		Did:                   signupDid,
 		CreatedAt:             time.Now(),
 		Email:                 request.Email,
-		EmailVerificationCode: to.StringPtr(fmt.Sprintf("%s-%s", helpers.RandomVarchar(6), helpers.RandomVarchar(6))),
+		EmailVerificationCode: new(fmt.Sprintf("%s-%s", helpers.RandomVarchar(6), helpers.RandomVarchar(6))),
 		Password:              string(hashed),
 		SigningKey:            k.Bytes(),
 	}
@@ -245,7 +244,7 @@ func (s *Server) handleCreateAccount(e echo.Context) error {
 		s.evtman.AddEvent(context.TODO(), &events.XRPCStreamEvent{
 			RepoIdentity: &atproto.SyncSubscribeRepos_Identity{
 				Did:    urepo.Did,
-				Handle: to.StringPtr(request.Handle),
+				Handle: new(request.Handle),
 				Seq:    time.Now().UnixMicro(), // TODO: no
 				Time:   time.Now().Format(util.ISO8601),
 			},

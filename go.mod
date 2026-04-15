@@ -3,7 +3,6 @@ module github.com/haileyok/cocoon
 go 1.26.1
 
 require (
-	github.com/Azure/go-autorest/autorest/to v0.4.1
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/bluesky-social/go-util v0.0.0-20260221095237-38d8022e3dc1
 	github.com/bluesky-social/indigo v0.0.0-20260308004230-c55a189a51a9
@@ -39,7 +38,6 @@ require (
 )
 
 require (
-	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/RussellLuo/slidingwindow v0.0.0-20200528002341-535bb99d338b // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/models"
@@ -24,7 +23,7 @@ func (s *Server) handleAdminMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(e echo.Context) error {
 		username, password, ok := e.Request().BasicAuth()
 		if !ok || username != "admin" || password != s.config.AdminPassword {
-			return helpers.InputError(e, to.StringPtr("Unauthorized"))
+			return helpers.InputError(e, new("Unauthorized"))
 		}
 
 		if err := next(e); err != nil {
@@ -250,7 +249,7 @@ func (s *Server) handleOauthSessionMiddleware(next echo.HandlerFunc) echo.Handle
 			e.Response().Header().Add("access-control-expose-headers", "DPoP-Nonce")
 		}
 
-		proof, err := s.oauthProvider.DpopManager.CheckProof(e.Request().Method, "https://"+s.config.Hostname+e.Request().URL.String(), e.Request().Header, to.StringPtr(accessToken))
+		proof, err := s.oauthProvider.DpopManager.CheckProof(e.Request().Method, "https://"+s.config.Hostname+e.Request().URL.String(), e.Request().Header, new(accessToken))
 		if err != nil {
 			if errors.Is(err, dpop.ErrUseDpopNonce) {
 				e.Response().Header().Set("WWW-Authenticate", `DPoP error="use_dpop_nonce"`)
@@ -275,7 +274,7 @@ func (s *Server) handleOauthSessionMiddleware(next echo.HandlerFunc) echo.Handle
 
 		if *oauthToken.Parameters.DpopJkt != proof.JKT {
 			logger.Error("jkt mismatch", "token", oauthToken.Parameters.DpopJkt, "proof", proof.JKT)
-			return helpers.InputError(e, to.StringPtr("dpop jkt mismatch"))
+			return helpers.InputError(e, new("dpop jkt mismatch"))
 		}
 
 		if time.Now().After(oauthToken.ExpiresAt) {

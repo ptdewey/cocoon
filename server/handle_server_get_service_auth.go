@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/uuid"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/models"
@@ -44,7 +43,7 @@ func (s *Server) handleServerGetServiceAuth(e echo.Context) error {
 	}
 
 	if req.Lxm == "com.atproto.server.getServiceAuth" {
-		return helpers.InputError(e, to.StringPtr("may not generate auth tokens recursively"))
+		return helpers.InputError(e, new("may not generate auth tokens recursively"))
 	}
 
 	var maxExp int64
@@ -54,7 +53,7 @@ func (s *Server) handleServerGetServiceAuth(e echo.Context) error {
 		maxExp = now + 60
 	}
 	if exp > maxExp {
-		return helpers.InputError(e, to.StringPtr("expiration too big. smoller please"))
+		return helpers.InputError(e, new("expiration too big. smoller please"))
 	}
 
 	repo := e.Get("repo").(*models.RepoActor)

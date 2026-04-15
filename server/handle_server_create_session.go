@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/models"
@@ -48,11 +47,11 @@ func (s *Server) handleCreateSession(e echo.Context) error {
 		var verr ValidationError
 		if errors.As(err, &verr) {
 			if verr.Field == "Identifier" {
-				return helpers.InputError(e, to.StringPtr("InvalidRequest"))
+				return helpers.InputError(e, new("InvalidRequest"))
 			}
 
 			if verr.Field == "Password" {
-				return helpers.InputError(e, to.StringPtr("InvalidRequest"))
+				return helpers.InputError(e, new("InvalidRequest"))
 			}
 		}
 	}
@@ -80,7 +79,7 @@ func (s *Server) handleCreateSession(e echo.Context) error {
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return helpers.InputError(e, to.StringPtr("InvalidRequest"))
+			return helpers.InputError(e, new("InvalidRequest"))
 		}
 
 		logger.Error("erorr looking up repo", "endpoint", "com.atproto.server.createSession", "error", err)
@@ -91,7 +90,7 @@ func (s *Server) handleCreateSession(e echo.Context) error {
 		if err != bcrypt.ErrMismatchedHashAndPassword {
 			logger.Error("erorr comparing hash and password", "error", err)
 		}
-		return helpers.InputError(e, to.StringPtr("InvalidRequest"))
+		return helpers.InputError(e, new("InvalidRequest"))
 	}
 
 	// if repo requires 2FA token and one hasn't been provided, return error prompting for one
@@ -102,7 +101,7 @@ func (s *Server) handleCreateSession(e echo.Context) error {
 			return helpers.ServerError(e, nil)
 		}
 
-		return helpers.InputError(e, to.StringPtr("AuthFactorTokenRequired"))
+		return helpers.InputError(e, new("AuthFactorTokenRequired"))
 	}
 
 	// if 2FA is required, now check that the one provided is valid
@@ -114,7 +113,7 @@ func (s *Server) handleCreateSession(e echo.Context) error {
 				return helpers.ServerError(e, nil)
 			}
 
-			return helpers.InputError(e, to.StringPtr("AuthFactorTokenRequired"))
+			return helpers.InputError(e, new("AuthFactorTokenRequired"))
 		}
 
 		if *repo.TwoFactorCode != *req.AuthFactorToken {

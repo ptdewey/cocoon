@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/bluesky-social/indigo/atproto/atcrypto"
 	"github.com/haileyok/cocoon/identity"
 	"github.com/haileyok/cocoon/internal/helpers"
@@ -42,7 +41,7 @@ func (s *Server) handleSignPlcOperation(e echo.Context) error {
 	}
 
 	if repo.PlcOperationCode == nil || repo.PlcOperationCodeExpiresAt == nil {
-		return helpers.InputError(e, to.StringPtr("InvalidToken"))
+		return helpers.InputError(e, new("InvalidToken"))
 	}
 
 	if *repo.PlcOperationCode != req.Token {

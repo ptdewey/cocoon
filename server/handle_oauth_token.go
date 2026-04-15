@@ -9,7 +9,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/oauth"
@@ -68,21 +67,21 @@ func (s *Server) handleOauthToken(e echo.Context) error {
 	})
 	if err != nil {
 		logger.Error("error authenticating client", "client_id", req.ClientID, "error", err)
-		return helpers.InputError(e, to.StringPtr(err.Error()))
+		return helpers.InputError(e, new(err.Error()))
 	}
 
 	// TODO: this should come from an oauth provier config
 	if !slices.Contains([]string{"authorization_code", "refresh_token"}, req.GrantType) {
-		return helpers.InputError(e, to.StringPtr(fmt.Sprintf(`"%s" grant type is not supported by the server`, req.GrantType)))
+		return helpers.InputError(e, new(fmt.Sprintf(`"%s" grant type is not supported by the server`, req.GrantType)))
 	}
 
 	if !slices.Contains(client.Metadata.GrantTypes, req.GrantType) {
-		return helpers.InputError(e, to.StringPtr(fmt.Sprintf(`"%s" grant type is not supported by the client`, req.GrantType)))
+		return helpers.InputError(e, new(fmt.Sprintf(`"%s" grant type is not supported by the client`, req.GrantType)))
 	}
 
 	if req.GrantType == "authorization_code" {
 		if req.Code == nil {
-			return helpers.InputError(e, to.StringPtr(`"code" is required"`))
+			return helpers.InputError(e, new(`"code" is required"`))
 		}
 
 		var authReq provider.OauthAuthorizationRequest
@@ -93,22 +92,22 @@ func (s *Server) handleOauthToken(e echo.Context) error {
 		}
 
 		if req.RedirectURI == nil || *req.RedirectURI != authReq.Parameters.RedirectURI {
-			return helpers.InputError(e, to.StringPtr(`"redirect_uri" mismatch`))
+			return helpers.InputError(e, new(`"redirect_uri" mismatch`))
 		}
 
 		if authReq.Parameters.CodeChallenge != nil {
 			if req.CodeVerifier == nil {
-				return helpers.InputError(e, to.StringPtr(`"code_verifier" is required`))
+				return helpers.InputError(e, new(`"code_verifier" is required`))
 			}
 
 			if len(*req.CodeVerifier) < 43 {
-				return helpers.InputError(e, to.StringPtr(`"code_verifier" is too short`))
+				return helpers.InputError(e, new(`"code_verifier" is too short`))
 			}
 
 			switch *&authReq.Parameters.CodeChallengeMethod {
 			case "", "plain":
 				if authReq.Parameters.CodeChallenge != req.CodeVerifier {
-					return helpers.InputError(e, to.StringPtr("invalid code_verifier"))
+					return helpers.InputError(e, new("invalid code_verifier"))
 				}
 			case "S256":
 				inputChal, err := base64.RawURLEncoding.DecodeString(*authReq.Parameters.CodeChallenge)
@@ -122,18 +121,18 @@ func (s *Server) handleOauthToken(e echo.Context) error {
 				compdChal := h.Sum(nil)
 
 				if !bytes.Equal(inputChal, compdChal) {
-					return helpers.InputError(e, to.StringPtr("invalid code_verifier"))
+					return helpers.InputError(e, new("invalid code_verifier"))
 				}
 			default:
-				return helpers.InputError(e, to.StringPtr("unsupported code_challenge_method "+*&authReq.Parameters.CodeChallengeMethod))
+				return helpers.InputError(e, new("unsupported code_challenge_method "+*&authReq.Parameters.CodeChallengeMethod))
 			}
 		} else if req.CodeVerifier != nil {
-			return helpers.InputError(e, to.StringPtr("code_challenge parameter wasn't provided"))
+			return helpers.InputError(e, new("code_challenge parameter wasn't provided"))
 		}
 
 		repo, err := s.getRepoActorByDid(ctx, *authReq.Sub)
 		if err != nil {
-			helpers.InputError(e, to.StringPtr("unable to find actor"))
+			helpers.InputError(e, new("unable to find actor"))
 		}
 
 		now := time.Now()
@@ -198,7 +197,7 @@ func (s *Server) handleOauthToken(e echo.Context) error {
 
 	if req.GrantType == "refresh_token" {
 		if req.RefreshToken == nil {
-			return helpers.InputError(e, to.StringPtr(`"refresh_token" is required`))
+			return helpers.InputError(e, new(`"refresh_token" is required`))
 		}
 
 		var oauthToken provider.OauthToken
@@ -208,30 +207,30 @@ func (s *Server) handleOauthToken(e echo.Context) error {
 		}
 
 		if client.Metadata.ClientID != oauthToken.ClientId {
-			return helpers.InputError(e, to.StringPtr(`"client_id" mismatch`))
+			return helpers.InputError(e, new(`"client_id" mismatch`))
 		}
 
 		if clientAuth.Method != oauthToken.ClientAuth.Method {
-			return helpers.InputError(e, to.StringPtr(`"client authentication method mismatch`))
+			return helpers.InputError(e, new(`"client authentication method mismatch`))
 		}
 
 		if *oauthToken.Parameters.DpopJkt != proof.JKT {
-			return helpers.InputError(e, to.StringPtr("dpop proof does not match expected jkt"))
+			return helpers.InputError(e, new("dpop proof does not match expected jkt"))
 		}
 
 		ageRes := oauth.GetSessionAgeFromToken(oauthToken)
 
 		if ageRes.SessionExpired {
-			return helpers.InputError(e, to.StringPtr("Session expired"))
+			return helpers.InputError(e, new("Session expired"))
 		}
 
 		if ageRes.RefreshExpired {
-			return helpers.InputError(e, to.StringPtr("Refresh token expired"))
+			return helpers.InputError(e, new("Refresh token expired"))
 		}
 
 		if client.Metadata.DpopBoundAccessTokens && oauthToken.Parameters.DpopJkt == nil {
 			// why? ref impl
-			return helpers.InputError(e, to.StringPtr("dpop jkt is required for dpop bound access tokens"))
+			return helpers.InputError(e, new("dpop jkt is required for dpop bound access tokens"))
 		}
 
 		nextTokenId := oauth.GenerateTokenId()
@@ -281,5 +280,5 @@ func (s *Server) handleOauthToken(e echo.Context) error {
 		})
 	}
 
-	return helpers.InputError(e, to.StringPtr(fmt.Sprintf(`grant type "%s" is not supported`, req.GrantType)))
+	return helpers.InputError(e, new(fmt.Sprintf(`grant type "%s" is not supported`, req.GrantType)))
 }

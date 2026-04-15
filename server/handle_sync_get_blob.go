@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -44,7 +43,7 @@ func (s *Server) handleSyncGetBlob(e echo.Context) error {
 	status := urepo.Status()
 	if status != nil {
 		if *status == "deactivated" {
-			return helpers.InputError(e, to.StringPtr("RepoDeactivated"))
+			return helpers.InputError(e, new("RepoDeactivated"))
 		}
 	}
 
@@ -81,13 +80,13 @@ func (s *Server) handleSyncGetBlob(e echo.Context) error {
 		}
 
 		config := &aws.Config{
-			Region:      aws.String(s.s3Config.Region),
+			Region:      new(s.s3Config.Region),
 			Credentials: credentials.NewStaticCredentials(s.s3Config.AccessKey, s.s3Config.SecretKey, ""),
 		}
 
 		if s.s3Config.Endpoint != "" {
-			config.Endpoint = aws.String(s.s3Config.Endpoint)
-			config.S3ForcePathStyle = aws.Bool(true)
+			config.Endpoint = new(s.s3Config.Endpoint)
+			config.S3ForcePathStyle = new(true)
 		}
 
 		sess, err := session.NewSession(config)
@@ -98,8 +97,8 @@ func (s *Server) handleSyncGetBlob(e echo.Context) error {
 
 		svc := s3.New(sess)
 		if result, err := svc.GetObject(&s3.GetObjectInput{
-			Bucket: aws.String(s.s3Config.Bucket),
-			Key:    aws.String(blobKey),
+			Bucket: new(s.s3Config.Bucket),
+			Key:    new(blobKey),
 		}); err != nil {
 			logger.Error("error getting blob from s3", "error", err)
 			return helpers.ServerError(e, nil)

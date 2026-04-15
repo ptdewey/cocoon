@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/api/bsky"
 	"github.com/bluesky-social/indigo/atproto/syntax"
@@ -13,7 +12,7 @@ import (
 func (s *Server) handleProxyBskyFeedGetFeed(e echo.Context) error {
 	feedUri, err := syntax.ParseATURI(e.QueryParam("feed"))
 	if err != nil {
-		return helpers.InputError(e, to.StringPtr("invalid feed uri"))
+		return helpers.InputError(e, new("invalid feed uri"))
 	}
 
 	appViewEndpoint, _, err := s.getAtprotoProxyEndpointFromRequest(e)

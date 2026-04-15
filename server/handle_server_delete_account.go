@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/events"
 	"github.com/bluesky-social/indigo/util"
@@ -47,7 +46,7 @@ func (s *Server) handleServerDeleteAccount(e echo.Context) error {
 
 	if urepo.Repo.AccountDeleteCode == nil || urepo.Repo.AccountDeleteCodeExpiresAt == nil {
 		logger.Error("no deletion token found for account")
-		return echo.NewHTTPError(400, map[string]interface{}{
+		return echo.NewHTTPError(400, map[string]any{
 			"error":   "InvalidToken",
 			"message": "Token is invalid",
 		})
@@ -55,7 +54,7 @@ func (s *Server) handleServerDeleteAccount(e echo.Context) error {
 
 	if *urepo.Repo.AccountDeleteCode != req.Token {
 		logger.Error("deletion token mismatch")
-		return echo.NewHTTPError(400, map[string]interface{}{
+		return echo.NewHTTPError(400, map[string]any{
 			"error":   "InvalidToken",
 			"message": "Token is invalid",
 		})
@@ -63,7 +62,7 @@ func (s *Server) handleServerDeleteAccount(e echo.Context) error {
 
 	if time.Now().UTC().After(*urepo.Repo.AccountDeleteCodeExpiresAt) {
 		logger.Error("deletion token expired")
-		return echo.NewHTTPError(400, map[string]interface{}{
+		return echo.NewHTTPError(400, map[string]any{
 			"error":   "ExpiredToken",
 			"message": "Token is expired",
 		})
@@ -140,7 +139,7 @@ func (s *Server) handleServerDeleteAccount(e echo.Context) error {
 		RepoAccount: &atproto.SyncSubscribeRepos_Account{
 			Active: false,
 			Did:    req.Did,
-			Status: to.StringPtr("deleted"),
+			Status: new("deleted"),
 			Seq:    time.Now().UnixMicro(),
 			Time:   time.Now().Format(util.ISO8601),
 		},

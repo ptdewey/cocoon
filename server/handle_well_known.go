@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/haileyok/cocoon/internal/helpers"
+"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -72,7 +71,7 @@ func (s *Server) handleAtprotoDid(e echo.Context) error {
 
 	host := e.Request().Host
 	if host == "" {
-		return helpers.InputError(e, to.StringPtr("Invalid handle."))
+		return helpers.InputError(e, new("Invalid handle."))
 	}
 
 	host = strings.Split(host, ":")[0]
@@ -116,7 +115,7 @@ func (s *Server) handleOauthAuthorizationServer(e echo.Context) error {
 		Issuer:                                     "https://" + s.config.Hostname,
 		RequestParameterSupported:                  true,
 		RequestUriParameterSupported:               true,
-		RequireRequestUriRegistration:              to.BoolPtr(true),
+		RequireRequestUriRegistration:              new(true),
 		ScopesSupported:                            CocoonSupportedScopes,
 		SubjectTypesSupported:                      []string{"public"},
 		ResponseTypesSupported:                     []string{"code"},

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/models"
 	"github.com/ipfs/go-cid"
@@ -47,7 +46,7 @@ func (s *Server) handleSyncListBlobs(e echo.Context) error {
 	status := urepo.Status()
 	if status != nil {
 		if *status == "deactivated" {
-			return helpers.InputError(e, to.StringPtr("RepoDeactivated"))
+			return helpers.InputError(e, new("RepoDeactivated"))
 		}
 	}
 

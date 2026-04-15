@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"net/url"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/labstack/echo/v4"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 )
@@ -49,7 +48,7 @@ func ForbiddenError(e echo.Context, suffix *string) error {
 }
 
 func InvalidTokenError(e echo.Context) error {
-	return InputError(e, to.StringPtr("InvalidToken"))
+	return InputError(e, new("InvalidToken"))
 }
 
 func ExpiredTokenError(e echo.Context) error {

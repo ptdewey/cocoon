@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/events"
 	"github.com/bluesky-social/indigo/util"
@@ -39,7 +38,7 @@ func (s *Server) handleServerDeactivateAccount(e echo.Context) error {
 		RepoAccount: &atproto.SyncSubscribeRepos_Account{
 			Active: false,
 			Did:    urepo.Repo.Did,
-			Status: to.StringPtr("deactivated"),
+			Status: new("deactivated"),
 			Seq:    time.Now().UnixMicro(), // TODO: bad puppy
 			Time:   time.Now().Format(util.ISO8601),
 		},

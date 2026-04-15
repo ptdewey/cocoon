@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/labstack/echo/v4"
@@ -19,12 +18,12 @@ func (s *Server) handleResolveHandle(e echo.Context) error {
 	handle := e.QueryParam("handle")
 
 	if handle == "" {
-		return helpers.InputError(e, to.StringPtr("Handle must be supplied in request."))
+		return helpers.InputError(e, new("Handle must be supplied in request."))
 	}
 
 	parsed, err := syntax.ParseHandle(handle)
 	if err != nil {
-		return helpers.InputError(e, to.StringPtr("Invalid handle."))
+		return helpers.InputError(e, new("Invalid handle."))
 	}
 
 	ctx := context.WithValue(e.Request().Context(), "skip-cache", true)

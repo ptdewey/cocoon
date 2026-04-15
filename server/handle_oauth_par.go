@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/oauth"
 	"github.com/haileyok/cocoon/oauth/constants"
@@ -58,12 +57,12 @@ func (s *Server) handleOauthPar(e echo.Context) error {
 	})
 	if err != nil {
 		logger.Error("error authenticating client", "client_id", parRequest.ClientID, "error", err)
-		return helpers.InputError(e, to.StringPtr(err.Error()))
+		return helpers.InputError(e, new(err.Error()))
 	}
 
 	if parRequest.DpopJkt == nil {
 		if client.Metadata.DpopBoundAccessTokens {
-			parRequest.DpopJkt = to.StringPtr(dpopProof.JKT)
+			parRequest.DpopJkt = new(dpopProof.JKT)
 		}
 	} else {
 		if !client.Metadata.DpopBoundAccessTokens {

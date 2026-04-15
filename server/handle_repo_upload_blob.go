@@ -107,13 +107,13 @@ func (s *Server) handleRepoUploadBlob(e echo.Context) error {
 
 	if s3Upload {
 		config := &aws.Config{
-			Region:      aws.String(s.s3Config.Region),
+			Region:      new(s.s3Config.Region),
 			Credentials: credentials.NewStaticCredentials(s.s3Config.AccessKey, s.s3Config.SecretKey, ""),
 		}
 
 		if s.s3Config.Endpoint != "" {
-			config.Endpoint = aws.String(s.s3Config.Endpoint)
-			config.S3ForcePathStyle = aws.Bool(true)
+			config.Endpoint = new(s.s3Config.Endpoint)
+			config.S3ForcePathStyle = new(true)
 		}
 
 		sess, err := session.NewSession(config)
@@ -125,8 +125,8 @@ func (s *Server) handleRepoUploadBlob(e echo.Context) error {
 		svc := s3.New(sess)
 
 		if _, err := svc.PutObject(&s3.PutObjectInput{
-			Bucket: aws.String(s.s3Config.Bucket),
-			Key:    aws.String(fmt.Sprintf("blobs/%s/%s", urepo.Repo.Did, c.String())),
+			Bucket: new(s.s3Config.Bucket),
+			Key:    new(fmt.Sprintf("blobs/%s/%s", urepo.Repo.Did, c.String())),
 			Body:   bytes.NewReader(fulldata.Bytes()),
 		}); err != nil {
 			logger.Error("error uploading blob to s3", "error", err)

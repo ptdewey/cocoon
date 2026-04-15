@@ -3,7 +3,6 @@ package server
 import (
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/haileyok/cocoon/identity"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/models"
@@ -27,7 +26,7 @@ func (s *Server) handleDescribeRepo(e echo.Context) error {
 	repo, err := s.getRepoActorByDid(ctx, did)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return helpers.InputError(e, to.StringPtr("RepoNotFound"))
+			return helpers.InputError(e, new("RepoNotFound"))
 		}
 
 		logger.Error("error looking up repo", "error", err)
@@ -44,8 +43,8 @@ func (s *Server) handleDescribeRepo(e echo.Context) error {
 
 	dochandle := ""
 	for _, aka := range diddoc.AlsoKnownAs {
-		if strings.HasPrefix(aka, "at://") {
-			dochandle = strings.TrimPrefix(aka, "at://")
+		if after, ok := strings.CutPrefix(aka, "at://"); ok {
+			dochandle = after
 			break
 		}
 	}

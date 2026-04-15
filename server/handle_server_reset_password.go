@@ -3,7 +3,6 @@ package server
 import (
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/models"
 	"github.com/labstack/echo/v4"
@@ -32,7 +31,7 @@ func (s *Server) handleServerResetPassword(e echo.Context) error {
 	}
 
 	if urepo.PasswordResetCode == nil || urepo.PasswordResetCodeExpiresAt == nil {
-		return helpers.InputError(e, to.StringPtr("InvalidToken"))
+		return helpers.InputError(e, new("InvalidToken"))
 	}
 
 	if *urepo.PasswordResetCode != req.Token {

@@ -3,7 +3,6 @@ package server
 import (
 	"strconv"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/bluesky-social/indigo/atproto/atdata"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/haileyok/cocoon/internal/helpers"
@@ -83,7 +82,7 @@ func (s *Server) handleListRecords(e echo.Context) error {
 	if _, err := syntax.ParseDID(did); err != nil {
 		actor, err := s.getActorByHandle(ctx, req.Repo)
 		if err != nil {
-			return helpers.InputError(e, to.StringPtr("RepoNotFound"))
+			return helpers.InputError(e, new("RepoNotFound"))
 		}
 		did = actor.Did
 	}
@@ -117,7 +116,7 @@ func (s *Server) handleListRecords(e echo.Context) error {
 
 	var newcursor *string
 	if len(records) == limit {
-		newcursor = to.StringPtr(records[len(records)-1].CreatedAt)
+		newcursor = new(records[len(records)-1].CreatedAt)
 	}
 
 	return e.JSON(200, ComAtprotoRepoListRecordsResponse{

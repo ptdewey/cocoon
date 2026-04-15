@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/models"
 	"github.com/labstack/echo/v4"
@@ -17,7 +16,7 @@ func (s *Server) handleServerRequestEmailConfirmation(e echo.Context) error {
 	urepo := e.Get("repo").(*models.RepoActor)
 
 	if urepo.EmailConfirmedAt != nil {
-		return helpers.InputError(e, to.StringPtr("InvalidRequest"))
+		return helpers.InputError(e, new("InvalidRequest"))
 	}
 
 	code := fmt.Sprintf("%s-%s", helpers.RandomVarchar(5), helpers.RandomVarchar(5))

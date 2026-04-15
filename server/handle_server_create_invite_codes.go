@@ -1,8 +1,7 @@
 package server
 
 import (
-	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/google/uuid"
+"github.com/google/uuid"
 	"github.com/haileyok/cocoon/internal/helpers"
 	"github.com/haileyok/cocoon/models"
 	"github.com/labstack/echo/v4"
@@ -37,11 +36,11 @@ func (s *Server) handleCreateInviteCodes(e echo.Context) error {
 	}
 
 	if req.CodeCount == nil {
-		req.CodeCount = to.IntPtr(1)
+		req.CodeCount = new(1)
 	}
 
 	if req.ForAccounts == nil {
-		req.ForAccounts = to.StringSlicePtr([]string{"admin"})
+		req.ForAccounts = new([]string{"admin"})
 	}
 
 	codes := make([]ComAtprotoServerCreateInviteCodesItem, 0, len(*req.ForAccounts))

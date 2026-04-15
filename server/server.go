@@ -724,13 +724,13 @@ func (s *Server) doBackup() {
 	key := "cocoon-backup-" + currTime + ".db"
 
 	config := &aws.Config{
-		Region:      aws.String(s.s3Config.Region),
+		Region:      new(s.s3Config.Region),
 		Credentials: credentials.NewStaticCredentials(s.s3Config.AccessKey, s.s3Config.SecretKey, ""),
 	}
 
 	if s.s3Config.Endpoint != "" {
-		config.Endpoint = aws.String(s.s3Config.Endpoint)
-		config.S3ForcePathStyle = aws.Bool(true)
+		config.Endpoint = new(s.s3Config.Endpoint)
+		config.S3ForcePathStyle = new(true)
 	}
 
 	sess, err := session.NewSession(config)
@@ -742,8 +742,8 @@ func (s *Server) doBackup() {
 	svc := s3.New(sess)
 
 	if _, err := svc.PutObject(&s3.PutObjectInput{
-		Bucket: aws.String(s.s3Config.Bucket),
-		Key:    aws.String(key),
+		Bucket: new(s.s3Config.Bucket),
+		Key:    new(key),
 		Body:   bytes.NewReader(backupData),
 	}); err != nil {
 		logger.Error("error uploading file to s3", "err", err)
